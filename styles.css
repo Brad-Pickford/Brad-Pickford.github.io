@@ -46,3 +46,12 @@ footer {
     width: 150px; 
     height: 150px; 
 }
+
+.title-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #0bbfd7;
+}
