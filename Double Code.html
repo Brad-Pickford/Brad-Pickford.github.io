@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Brad Pickford Double Pendulum Source Code</title>
+</head>
+<body>
+    <h1>DOUBLE PENDULUM SOURCE CODE</h1>
+    <br>
+    <p>import matplotlib <br>
+        matplotlib.use('TkAgg') # 'tkAgg' if Qt not present <br>
+        import matplotlib.pyplot as plt <br>
+        import scipy as sp<br>
+        import matplotlib.animation as animation<br>
+        <br>
+        class Pendulum: <br>
+            def __init__(self, theta1, theta2, dt): <br>
+                self.theta1 = theta1<br>
+                self.theta2 = theta2 <br>
+                <br>
+                self.p1 = 0.0<br>
+                self.p2 = 0.0<br>
+                <br>
+                self.dt = dt<br>
+                <br>
+                self.g = 9.81<br>
+                self.length = 1<br>
+                <br>
+                self.trajectory = [self.polar_to_cartesian()]<br>
+                <br>
+            def polar_to_cartesian(self):<br>
+                x1 =  self.length * sp.sin(self.theta1)  <br>      
+                y1 = -self.length * sp.cos(self.theta1)<br>
+                <br>
+                x2 = x1 + self.length * sp.sin(self.theta2)<br>
+                y2 = y1 - self.length * sp.cos(self.theta2)<br>
+                <br>
+                print(self.theta1, self.theta2)<br>
+                return sp.array([[0.0, 0.0], [x1, y1], [x2, y2]])<br>
+                <br>
+            def evolve(self):<br>
+                theta1 = self.theta1<br>
+                theta2 = self.theta2<br>
+                p1 = self.p1<br>
+                p2 = self.p2<br>
+                g = self.g<br>
+                l = self.length<br>
+                <br>
+                expr1 = sp.cos(theta1 - theta2)<br>
+                expr2 = sp.sin(theta1 - theta2)<br>
+                expr3 = (1 + expr2**2)<br>
+                expr4 = p1 * p2 * expr2 / expr3<br>
+                expr5 = (p1**2 + 2 * p2**2 - p1 * p2 * expr1) \<br>
+                * sp.sin(2 * (theta1 - theta2)) / 2 / expr3**2<br>
+                expr6 = expr4 - expr5<br>
+                <br>
+                self.theta1 += self.dt * (p1 - p2 * expr1) / expr3<br>
+                self.theta2 += self.dt * (2 * p2 - p1 * expr1) / expr3<br>
+                self.p1 += self.dt * (-2 * g * l * sp.sin(theta1) - expr6)<br>
+                self.p2 += self.dt * (    -g * l * sp.sin(theta2) + expr6)<br>
+                <br>
+                new_position = self.polar_to_cartesian()<br>
+                self.trajectory.append(new_position)<br>
+                print(new_position)<br>
+                return new_position<br>
+                <br>
+                <br>
+        class Animator:<br>
+            def __init__(self, pendulum, draw_trace=False):<br>
+                self.pendulum = pendulum<br>
+                self.draw_trace = draw_trace<br>
+                self.time = 0.0<br>
+                <br>
+                <br>
+                self.fig, self.ax = plt.subplots()<br>
+                self.ax.set_title('Equal Mass Double Pendulum Simulation')<br>
+                self.ax.set_facecolor('black')<br>
+                self.ax.set_ylim(-2.5, 2.5)<br>
+                self.ax.set_xlim(-2.5, 2.5)<br>
+                <br>
+                <br>
+                self.time_text = self.ax.text(0.05, 0.95, '', <br>
+                    horizontalalignment='left', <br>
+                    verticalalignment='top', <br>
+                    transform=self.ax.transAxes)<br>
+                    <br>
+                    <br>
+                self.line, = self.ax.plot(<br>
+                    self.pendulum.trajectory[-1][:, 0], <br>
+                    self.pendulum.trajectory[-1][:, 1], <br>
+                    marker='o',c = 'c')<br>
+                    <br>
+                    <br>
+                if self.draw_trace:<br>
+                    self.trace, = self.ax.plot(<br>
+                        [a[2, 0] for a in self.pendulum.trajectory],<br>
+                        [a[2, 1] for a in self.pendulum.trajectory],<br>
+                        c = 'w')<br>
+                        <br>
+            def advance_time_step(self):<br>
+                while True:<br>
+                    self.time += self.pendulum.dt<br>
+                    yield self.pendulum.evolve()<br>
+                    <br>
+            def update(self, data):<br>
+                self.time_text.set_text('Elapsed time: {:6.2f} s'.format(self.time))<br>
+                <br>
+                self.line.set_ydata(data[:, 1])<br>
+                self.line.set_xdata(data[:, 0])<br>
+                <br>
+                if self.draw_trace:<br>
+                    self.trace.set_xdata([a[2, 0] for a in self.pendulum.trajectory])<br>
+                    self.trace.set_ydata([a[2, 1] for a in self.pendulum.trajectory])<br>
+                return self.line,<br>
+                <br>
+            def animate(self):<br>
+                self.animation = animation.FuncAnimation(self.fig, self.update,<br>
+                                 self.advance_time_step, interval=25, blit=False)<br>
+                                 <br>
+        pendulum = Pendulum(theta1=sp.pi, theta2=sp.pi - 0.01, dt=0.01)<br>
+        animator = Animator(pendulum=pendulum, draw_trace=True)<br>
+        animator.animate()<br>
+        plt.show()</p>
+
+        <footer>
+            <p>&copy; 2023 Bradley Pickford. All rights reserved.</p>
+        </footer>        
+</body>
+</html>
